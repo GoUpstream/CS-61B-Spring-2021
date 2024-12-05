@@ -1,8 +1,9 @@
 package deque;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public class LinkedListDeque<T> implements Deque<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     private final LinkedNode sentinel;
     private int size;
 
@@ -27,11 +28,6 @@ public class LinkedListDeque<T> implements Deque<T> {
         sentinel.previous.next = node;
         sentinel.previous = node;
         size++;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     @Override
@@ -97,15 +93,42 @@ public class LinkedListDeque<T> implements Deque<T> {
 
     @Override
     public Iterator<T> iterator() {
-        return null;
+        return new LinkedListDequeIterator();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof Deque)) {
+            return false;
+        }
+
+        Deque<?> other = (Deque<?>) o;
+        if (size != other.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < size; i++) {
+            T t = get(i);
+            if (t == null) {
+                if (other.get(i) != null) {
+                    return false;
+                }
+            } else if (!t.equals(other.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private class LinkedNode {
-        public T item;
-        public LinkedNode next;
-        public LinkedNode previous;
+        private final T item;
+        private LinkedNode next;
+        private LinkedNode previous;
 
-        public LinkedNode(T i, LinkedNode n, LinkedNode p) {
+        LinkedNode(T i, LinkedNode n, LinkedNode p) {
             item = i;
             next = n;
             previous = p;
@@ -116,6 +139,24 @@ public class LinkedListDeque<T> implements Deque<T> {
                 return item;
             }
             return next.get(i - 1);
+        }
+    }
+
+    private class LinkedListDequeIterator implements Iterator<T> {
+        private LinkedNode cursor = sentinel;
+
+        @Override
+        public boolean hasNext() {
+            return cursor.next != sentinel;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            cursor = cursor.next;
+            return cursor.item;
         }
     }
 }
